@@ -1,0 +1,790 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div style="padding: 2em; padding-bottom: 0em;">
+<div style="padding:2em 2em; background: linear-gradient(to top right, rgb(30,30,30),rgb(50,50,50) ); border-radius: 1em; color:white;">
+  <div class="row">
+    <div class="col-lg-8">
+
+      <h2>Course Name: <span style="font-weight:400;"> {{course.course_name}} </span></h2> 
+      <h4> <b>By Instructor: </b> {{ course.made_by_teacher}}</h4>
+      <div style="font-size: 1.2em;"><b> Date of creation:</b> {{course.date_generated|date:"l, F j, Y"}} <br>
+          <b>Enrolled students: </b> <span style="color: azure;"> {{course.student.count}} </span></div> 
+     
+      <div class="row">
+       <div class="col-lg-12">
+         <p style="font-size: 1.2em; color:lightgrey;"><b> Course description: - </b><br>
+           <span style="font-weight: 500;"> <i>{{course.course_description}} </i></span> </p>
+       </div>
+      </div>
+      <hr>
+
+    {% if user.teacher.name == course.made_by_teacher.name %}
+       {% if course.iscomplete == True %}
+           <a class="btn btn-secondary" href="">
+            Course Completed  </a>
+       {% else %}
+           <a class="btn btn-secondary" href="{% url 'courses:coursecompleted' slug=course.slug %}">
+            Mark the course as completed  </a>
+       {% endif %}
+
+
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        Course settings
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" style="border:1px solid grey;" href="{% url 'courses:updatecourse' slug=course.slug %}">
+          1. Update Course</a></li>
+        <li><a class="dropdown-item" style="border:1px solid grey;" href="{% url 'courses:deletecourse' slug=course.slug %}">
+          2. Delete Course</a></li>
+        <li><a class="dropdown-item" style="border:1px solid grey;" href="{% url 'sections:createsection' slug=course.slug %}">
+          3. Create Section</a></li>
+      </ul>
+    </div>
+    
+    <!-- For students -->
+    {% else %}
+      {% if user.student and user.is_authenticated %}
+          {% if user.student in course.student.all  %}
+              <h4>You are a part of this course</h4>
+          {% else %}
+              <a class="btn btn-dark" href="{% url 'courses:joincourse' slug=course.slug %}"> Start Course </a>
+          {% endif %} 
+        
+      {% endif %}
+    {% endif %}
+
+    </div>
+    <div class="col-lg-4" style="text-align: center;">
+      <img class="course-detail-image"  src="{{course.course_img.url}}" alt="coures-image">
+    </div>
+  </div>
+
+</div> </div>
+<!--End of the course introduction -->
+
+
+
+<!-- Start of the normal sections -->
+<div class="row" style="margin: 0px; padding:2em;" >
+<!-- Start of the new row (main) -->
+
+<!-- Modal Start -->
+<div class="modal fade" id="LevelSectionModal" data-bs-backdrop="static" style="padding: 1em;"
+data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <h1 class="fs-3" id="Modal_level_title" style="text-align: center; padding-top: 1em;">
+        Easy Level Sections
+      </h1>
+      <hr>
+      <div class="modal-body" id="Modal_level_body">
+        I am within the modal
+      </div>
+      <div style="text-align: center; padding-bottom: 1em;" >
+        <hr>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of the modal for the course sections for each level -->
+
+
+
+
+<!-- Modals for starting of course to get the course options-->
+<div class="modal fade" id="confirm_course_modal" data-bs-backdrop="static" style="padding: 1em;"
+data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <h1 class="fs-3" id="Modal_level_title" style="text-align: center; padding-top: 1em;">
+        Course Successfully Taken
+      </h1>
+      <hr>
+      <div class="modal-body" id="Modal_level_body">
+       <img src="{% static 'accounts/correct.jpg' %}" alt="Congrats!">
+      </div>
+      <div style="text-align: center; padding-bottom: 1em;" >
+        <hr>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of the Modals for starting the course -->
+
+
+
+<div class="col-lg-6" style="background-color: whitesmoke; padding:1em;">
+<!-- Start of the first main column -->
+    <h3 style="text-align:center;"> Sections </h3>
+  <hr>
+
+{% if user.is_authenticated and user.student %} <!-- if user is authenticated (1)-->
+  {% if user.student in course.student.all  %} <!-- if user has taken the course (2)-->
+    
+  
+  <!--Start of the available sections for students-->
+  <!--
+  {% for section in available_sections %}
+  <a data-bs-toggle="collapse" href="#collapseExample" class="accordion-button"
+  aria-expanded="false" aria-controls="collapseExample" style="color:black; text-decoration:none;
+  background-color: lightblue; padding: 1em 1em; border:1px solid black; display: flex;
+     justify-content:space-between; align-items: center;"> 
+  <div>
+      <span style="padding: 1em 0em 0em 1em;">
+        {{ forloop.counter }}.  {{ section.section_name}} 
+      </span> 
+      <span style="padding: 1em 0em 0em 1em; color:red;">Available to you</span>
+    </div>
+  </a>
+ -->
+
+  <!--Collapse section for each section--><!--
+  <div class="collapse" id="collapseExample" style="padding: 0em 1em;">
+    {% for module in section.has_modules.all %} <!-- modules loop started -->
+  <!--  <div class="card card-body" style="border: 1px solid grey;">
+    <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+    href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+     {{forloop.counter}}. - {{module}} </a> 
+    </div>
+    {% endfor %} <!-- loop for modules in a section ended -->
+ <!-- </div> -->
+  <!--collapse section end-->
+<!--
+{% endfor %} <!--End of 1st for loop (section loop) -->
+
+  <!--Not Available sections-->
+ <!-- {% for section in excluded_sections %}
+    <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; display: flex;
+     justify-content:space-between; align-items: center;">
+      <span style="padding: 1em 0em 0em 1em;">
+        {{ forloop.counter }}.  {{ section.section_name }} 
+      </span>
+      <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+    </div>
+  {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+<!-- End of the section content for students -->
+
+
+
+  
+{% else %} <!--If user has not taken the course (2) -->
+
+   {% for section in sections %}
+     <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; display: flex;
+      justify-content:space-between; align-items: center;">
+       <span style="padding: 1em 0em 0em 1em;">
+         {{ forloop.counter }}.  {{ section.section_name }} 
+       </span>
+      {% if user.teacher.name == course.made_by_teacher.name %}
+      <span style="padding: 1em 0em 0em 1em;">
+        <a class="btn btn-outline-danger" href="{% url 'sections:deletesection' slug=section.slug %}">
+          Delete Section
+        </a>
+        <a class="btn btn-outline-primary" href="">
+          Update Section
+        </a>
+      </span>
+      {% endif %}
+    </div>
+    {% endfor%} <!--end of second loop-->
+
+{% endif %} 
+ <!--end of if-else of (student has taken course or not) (2)-->
+
+{% else %} <!-- If user is not (authenticated-student) (1) -->
+   
+
+
+
+<!-- If user is a teacher that has made the coures -->
+{% if user.teacher.name == course.made_by_teacher.name %}
+   {% for section in sections %}
+      <div style="color:black; text-decoration:none;
+         background-color: lightblue; padding: 1em 1em; border:1px solid black; display: flex;
+         justify-content:space-between; align-items: center;"> 
+          <button data-bs-toggle="collapse"  class="accordion-button" data-bs-target="#collapseExample{{ forloop.counter }}"
+           aria-expanded="false" aria-controls="collapseExample{{ forloop.counter }}." style="width: 25em; padding:0.5em 1em;">
+              <span style="padding: 1em 0.5em 0.5em 1em; margin: auto 0px; ">
+                  {{ forloop.counter }}.  {{ section.section_name}} 
+                 <span style="color: purple;"> &nbsp; {{section.Difficulty}} </span> 
+              </span> 
+          </button>
+          <span style="padding: 0em 1em;">
+            <a class="btn btn-outline-danger" href="{% url 'sections:deletesection' slug=section.slug %}">
+              <img src="{% static 'sections/photos/delete.png' %}" style="width: 1.2em;">
+            </a>
+            <a class="btn btn-outline-light" 
+            href="{% url 'sections:updatesection' course_slug=course.slug section_slug=section.slug %}">
+              <img src="{% static 'sections/photos/edit.png' %}" style="width: 1.2em;">
+            </a>
+            <a class="btn btn-outline-dark" href="{% url 'modules:createmodule' course_slug=course.slug section_slug=section.slug %}">
+              Add Module
+            </a>
+          </span>
+        </div>
+
+        <!--Collapse section for each section-->
+        <div class="collapse" id="collapseExample{{forloop.counter}}" style="padding: 0em 1em;">
+           {% for module in section.has_modules.all %}
+              <div style=" padding:0.7em 0.5em; border: 1px solid grey;">
+                <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+                href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+                  <span>
+                   {{forloop.counter}}. - {{module}} module
+                  </span> 
+                </a>
+                <span>
+                  <a class="btn btn-outline-primary" href="">
+                    Update
+                  </a>
+                  <a class="btn btn-outline-danger" href="">
+                    Delete
+                  </a>
+                <span>
+              </div>
+           {% endfor %} <!-- End of modules loop -->
+        </div>
+        <!--collapse section end-->
+      {% endfor %}
+
+{% else %} <!--If the person is not a teacher who has made the course -->
+   {% for section in sections %}
+     <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+                 display: flex; justify-content:space-between; align-items: center;">
+          <span style="padding: 1em 0em 0em 1em;">
+            {{ forloop.counter }}.  {{ section.section_name }}  &nbsp;  - {{section.Difficulty}} Level
+          </span>
+     </div>
+   {% endfor%} <!--end of second loop-->  
+{% endif %}<!-- end of this condition (to check for teacher)-->
+
+{% endif %} 
+ <!-- end of if-else for if user is not (authenticated-student) (1) -->
+
+
+
+
+<!-- This is for the students that have taken the course -->
+ {% if user.is_authenticated and user.student %} <!-- if user is authenticated (1)-->
+ {% if user.student in course.student.all  %} <!-- if user has taken the course (2)-->
+ <!-- All the copied content here -->
+ <!--Start of the main game -->
+ <div class="row" style=" margin: 0%; justify-content: center; background-color: rgb(255, 218, 218); 
+padding:2em 0em;"> <!-- dont copy this-->
+    <div class="col-lg-10" 
+    style="text-align: center; background: white; padding: 1em 0em; border-radius: 2em;
+     border: 1px solid black;"> <!-- dont copy this-->
+
+    <!-- row 1 start -->
+    <div class="row" style="justify-content: left; padding: 0em 1em; margin: 0px;">
+        <div class="col-lg-6" style="text-align: center; border-right: 2px solid black;">
+    
+            <a style="padding: 1em; text-decoration: none;" onclick="easy_section_click()"
+            data-bs-toggle="modal" data-bs-target="#LevelSectionModal">
+                <h4>Easy Level - Sections</h4>
+                <div>
+                    <img style="width: 10em;" src="{% static 'courses/photos/level_1.png' %}" alt="img1">
+                </div>
+            </a>
+            <div style="padding-left: 1em;">
+                <hr style="border: 0.1em solid black;">
+            </div>
+
+        </div>
+    </div> 
+    <!--row 1 ended -->
+
+    <!--row 2 ended -->
+    <div class="row" style="justify-content: right; padding:0em 1em; margin: 0px;">
+        <div class="col-lg-1" style="border-right: 0.2em solid black;">
+        </div>
+        <div class="col-lg-6"  style="text-align: center; border-left: 2px solid black;">
+
+            <a style="padding: 1em; text-decoration: none;" onclick="medium_section_click()"
+            data-bs-toggle="modal" data-bs-target="#LevelSectionModal">
+                <h4>Medium Level - Sections</h4>
+                <div>
+                    <img style="width: 10em;" src="{% static 'courses/photos/level_2.png' %}" alt="img1">
+                </div>
+            </a>
+            <div style="padding-right: 1em;">
+                <hr style="border: 0.1em solid black;">
+            </div>
+
+        </div>
+    </div>  
+    <!--row 2 ended -->
+
+    <!--row 3 started-->
+    <div class="row" style="justify-content: left; padding:0em 1em; margin: 0px;">
+        <div class="col-lg-6"  style="text-align: center; border-right: 2px solid black;">
+
+            <a style="padding: 1em; text-decoration: none;" onclick="hard_section_click()" 
+            data-bs-toggle="modal" data-bs-target="#LevelSectionModal">
+                <h4>Hard Level - Sections</h4>
+                <div>
+                    <img style="width: 10em;" src="{% static 'courses/photos/level_3.png' %}" alt="img1">
+                </div>
+            </a>
+            <div style="padding-left: 1em;">
+                <hr style="border: 0.1em solid black;">
+            </div>
+
+        </div>
+    </div>  
+    <!--row 3 ended -->
+
+
+    <div class="row" style="justify-content: right; padding:0em 1em; margin: 0px;">
+        <div class="col-lg-1" style="border-right: 0.2em solid black;"></div>
+        <div class="col-lg-6"  style="text-align: center; border-left: 2px solid black;">
+
+            <a style="padding: 1em; text-decoration: none;" onclick="advanced_section_click()"
+            data-bs-toggle="modal" data-bs-target="#LevelSectionModal">
+                <h4>Expert Level - Sections</h4>
+                <div>
+                    <img style="width: 10em;" src="{% static 'courses/photos/level_4.jpg' %}" alt="img1">
+                </div>
+            </a>
+            <div style="padding-right: 1em;">
+                <hr style="border: 0.1em solid black;">
+            </div>
+
+        </div>
+    </div>  
+    <!--row 4 ended -->
+
+  </div> <!-- col 6 main ended--> <!-- dont copy this-->
+</div>
+<!-- End of the main game -->
+<!-- All the copied content here -->
+{% endif %} <!--End of the student checking  here-->
+{% endif %} <!-- End of the authenticatoin here-->
+
+</div> <!--col-6-lg ended here (1st outer column) -->
+
+
+
+<!-- Start of the revision section -->
+{% if user.is_authenticated and user.student %}
+  {% if user.student in course.student.all  %} <!-- if user has taken the course -->
+  <div class="col-lg-6" style="background-color: whitesmoke; padding:1em;">
+  <!--start of the second outer column -->
+     <h3 style="text-align:center;"> Revision Sections </h3>
+     <hr>
+   <!-- Start of the sections in recommended -->
+    <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+    display: flex; justify-content:space-between; align-items: center;">
+       <span style="padding: 1em 0em 0em 1em;">
+         {{ section.section_name }} 
+         Section 1 (this is recommended)
+       </span>
+    </div>
+<!-- end of the sections in recommended -->
+<!-- end of the revision section condition -->
+
+
+<!--start of the test section below revision section -->
+<div class="row" style="margin: 0px; padding: 2em 0em;">
+  <div>
+    <h3 style="text-align:center;"> Course Tests </h3>
+    <hr>
+    <a href="">
+      <div style="border: 1px solid black; padding:0.5em 1.3em; 
+       background-color: lightgrey; text-decoration: none; color: black;">
+        1. Give test to unlock the next Level
+      </div>
+    </a> <!-- 1 -->
+    <a href="">
+      <div style="border: 1px solid black; padding:0.5em 1.3em; 
+       background-color: lightgrey; text-decoration: none; color: black;">
+        2. Give test to Complete the course 
+      </div>
+    </a> <!-- 2 -->
+  </div>
+</div>
+<!--End of the test course section -->
+
+   {% endif %}
+{% endif %}
+
+
+
+
+
+</div><!--End of the second outer column -->
+</div> <!--div to end the row of the grid layout -->
+
+<script src="{% static 'accounts/js/bootstrap.bundle.min.js' %}"></script>
+
+
+<!--This script is here to show the content of the modals on clicking -->
+<script>
+  // This is the variable of the modals
+  // var modal_title = document.getElementById('Modal_level_title');
+  // var modal_body = document.getElementById('Modal_level_body');
+
+  var easy_section = document.getElementById('');
+  var medium_section = document.getElementById('');
+  var hard_section = document.getElementById('');
+  var advanced_section= document.getElementById('');
+
+  function easy_section_click(){
+  var modal_title = document.getElementById('Modal_level_title');
+  var modal_body = document.getElementById('Modal_level_body');
+
+  modal_title.textContent = "Easy Level";
+
+  var easy_Str =`
+  <!-- if user has taken the course -->
+  {% if user.student in course.student.all  %}   
+   {% if available_sections %}   <!-- one --> 
+    {% for section in available_sections %}    
+      {% if section.Difficulty == 'Easy' %}
+
+     <a data-bs-toggle="collapse" href="#collapseExample" class="accordion-button"
+        aria-expanded="false" aria-controls="collapseExample" style="color:black; 
+        text-decoration:none; background-color: lightblue; padding: 1em 1em; 
+        border:1px solid black; display: flex; justify-content:space-between; 
+        align-items: center;"> 
+
+       <div>
+         <span style="padding: 1em 0em 0em 1em;">
+            {{ forloop.counter }}.  {{ section.section_name}} 
+         </span> 
+         <span style="padding: 1em 0em 0em 1em; color:red;">Available to you</span>
+       </div>
+    </a>
+
+    <div class="collapse" id="collapseExample" style="padding: 0em 1em;">
+       {% for module in section.has_modules.all %} 
+          <!-- modules loop started -->
+          <div class="card card-body" style="border: 1px solid grey;">
+              <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+               href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+                 {{forloop.counter}}. - {{module}} </a> 
+         </div>
+       {% endfor %} 
+       <!-- loop for modules in a section ended -->
+    </div>
+
+    <!--Not Available sections--> <!-- (1) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Easy' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+    {% else %}
+      <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+      </div>
+      <br> 
+
+    <!--Not Available sections--> <!-- (2) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Easy' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+    {% endif %} <!-- condition of the difficulty being easy -->
+   {% endfor %} <!-- section loop closed -->
+
+   {% else %}
+   <div style="text-align:center;">
+      <h5> Sections not available yet! </h5> <br> 
+      <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+    </div>
+   {% endif%}
+   {% endif %}`;
+   modal_body.innerHTML =easy_Str;
+  }
+
+  function medium_section_click(){
+  var modal_title = document.getElementById('Modal_level_title');
+  var modal_body = document.getElementById('Modal_level_body');
+
+  modal_title.textContent = "Medium Level";
+  modal_body.innerHTML = ` <!-- if user has taken the course (2)-->
+  {% if user.student in course.student.all  %}   
+   {% if available_sections is not None %}   <!-- one --> 
+    {% for section in available_sections %}    
+      {% if section.Difficulty == 'Medium' %}
+
+     <a data-bs-toggle="collapse" href="#collapseExample" class="accordion-button"
+        aria-expanded="false" aria-controls="collapseExample" style="color:black; 
+        text-decoration:none; background-color: lightblue; padding: 1em 1em; 
+        border:1px solid black; display: flex; justify-content:space-between; 
+        align-items: center;"> 
+
+       <div>
+         <span style="padding: 1em 0em 0em 1em;">
+            {{ forloop.counter }}.  {{ section.section_name}} 
+         </span> 
+         <span style="padding: 1em 0em 0em 1em; color:red;">Available to you</span>
+       </div>
+    </a>
+
+    <div class="collapse" id="collapseExample" style="padding: 0em 1em;">
+       {% for module in section.has_modules.all %} 
+          <!-- modules loop started -->
+          <div class="card card-body" style="border: 1px solid grey;">
+              <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+               href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+                 {{forloop.counter}}. - {{module}} </a> 
+         </div>
+       {% endfor %} 
+       <!-- loop for modules in a section ended -->
+    </div>
+
+    <!-- Not Available sections --> <!-- (1) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Medium' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+   {% else %}
+      <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+      </div>
+      <br> 
+
+    <!-- Not Available sections --> <!-- (2) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Medium' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+   {% endif %} <!-- condition of the difficulty being medium -->
+
+   {% endfor %} <!-- section loop closed -->
+
+   {% else %}
+   <div style="text-align:center;">
+      <h5> Sections not available yet! </h5> <br> 
+      <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+    </div>
+   {% endif%} <!-- for checking available sections -->
+   {% endif %} `;
+  }
+
+  function hard_section_click(){
+  var modal_title = document.getElementById('Modal_level_title');
+  var modal_body = document.getElementById('Modal_level_body');
+
+  modal_title.textContent = "Hard Level";
+  modal_body.innerHTML = `<!-- if user has taken the course (2)-->
+  {% if user.student in course.student.all  %}   
+    {% if available_sections is not None %}   <!-- one --> 
+     {% for section in available_sections %}    
+       {% if section.Difficulty == 'Hard' %}
+
+     <a data-bs-toggle="collapse" href="#collapseExample" class="accordion-button"
+        aria-expanded="false" aria-controls="collapseExample" style="color:black; 
+        text-decoration:none; background-color: lightblue; padding: 1em 1em; 
+        border:1px solid black; display: flex; justify-content:space-between; 
+        align-items: center;"> 
+
+       <div>
+         <span style="padding: 1em 0em 0em 1em;">
+            {{ forloop.counter }}.  {{ section.section_name}} 
+         </span> 
+         <span style="padding: 1em 0em 0em 1em; color:red;">Available to you</span>
+       </div>
+    </a>
+
+    <div class="collapse" id="collapseExample" style="padding: 0em 1em;">
+       {% for module in section.has_modules.all %} 
+          <!-- modules loop started -->
+          <div class="card card-body" style="border: 1px solid grey;">
+              <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+               href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+                 {{forloop.counter}}. - {{module}} </a> 
+         </div>
+       {% endfor %} 
+       <!-- loop for modules in a section ended -->
+    </div>
+
+    <!--Not Available sections--> <!-- (1) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Hard' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+
+    {% else %}
+      <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+      </div>
+      <br> 
+
+    <!--Not Available sections--> <!-- (2) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Hard' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+    {% endif %} <!-- condition of the difficulty being easy -->
+
+   {% endfor %} <!-- section loop closed -->
+
+   {% else %}
+     <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+     </div>
+   {% endif%}
+
+   {% endif %}`;
+  }
+
+  function advanced_section_click(){
+  var modal_title = document.getElementById('Modal_level_title');
+  var modal_body = document.getElementById('Modal_level_body');
+
+  modal_title.textContent = "Expert Level";
+  modal_body.innerHTML = ` <!-- if user has taken the course -->
+  {% if user.student in course.student.all  %}   
+    {% if available_sections is not None %}   <!-- one --> 
+     {% for section in available_sections %}    
+       {% if section.Difficulty == 'Expert' %}
+
+     <a data-bs-toggle="collapse" href="#collapseExample" class="accordion-button"
+        aria-expanded="false" aria-controls="collapseExample" style="color:black; 
+        text-decoration:none; background-color: lightblue; padding: 1em 1em; 
+        border:1px solid black; display: flex; justify-content:space-between; 
+        align-items: center;"> 
+
+       <div>
+         <span style="padding: 1em 0em 0em 1em;">
+            {{ forloop.counter }}.  {{ section.section_name}} 
+         </span> 
+         <span style="padding: 1em 0em 0em 1em; color:red;">Available to you</span>
+       </div>
+    </a>
+
+    <div class="collapse" id="collapseExample" style="padding: 0em 1em;">
+       {% for module in section.has_modules.all %} 
+          <!-- modules loop started -->
+          <div class="card card-body" style="border: 1px solid grey;">
+              <a style="color: black; text-decoration: none; padding:0em 0.5em;" 
+               href="{% url 'modules:detailmodule' course_slug=course.slug section_slug=section.slug slug=module.slug %}"> 
+                 {{forloop.counter}}. - {{module}} </a> 
+         </div>
+       {% endfor %} 
+       <!-- loop for modules in a section ended -->
+    </div>
+
+    <!--Not Available sections--> <!-- (1) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Expert' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+
+    {% else %}
+      <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+      </div>
+      <br> 
+
+    <!--Not Available sections--> <!-- (2) -->
+    {% for section in excluded_sections %}
+     {% if section.Difficulty == 'Expert' %}
+       <div style="background-color: lightgrey; padding:0em 1em 1em; border:1px solid black; 
+       display: flex; justify-content:space-between; align-items: center;">
+        <span style="padding: 1em 0em 0em 1em;">
+          {{ forloop.counter }}.  {{ section.section_name }} 
+        </span>
+        <span style="padding: 1em 0em 0em 1em; color:red;">Not Available</span>
+       </div>
+     {% endif %}
+   {% endfor%} <!--end of second loop--> 
+  <!--Not Available sections (ended) -->
+
+    {% endif %} <!-- condition of the difficulty being easy -->
+   {% endfor %} <!-- section loop closed -->
+
+   {% else %}
+     <div style="text-align:center;">
+       <h5> Sections not available yet! </h5> <br> 
+       <img style="width:10em;" src="{% static 'courses/photos/robot_sad.png' %}" alt="robot">
+     </div>
+   {% endif%}
+
+   {% endif %} `;
+  }
+
+
+</script>
+ 
+
+{% endblock content %}
